@@ -54,7 +54,7 @@ public class LoginController {
                             .maxAge(1800)
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(token).message(userDetails.getUsername()).build();
+                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(null).message(userDetails.getUsername()).build();
                     return new ResponseEntity<>(authResponse,HttpStatus.OK);
                 }
                 else
@@ -116,7 +116,7 @@ public class LoginController {
                             .maxAge(1800)
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(token).message(userDetails.getUsername()).build();
+                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(null).message(userDetails.getUsername()).build();
                     return new ResponseEntity<>(authResponse,HttpStatus.OK);
                 }
                 else
@@ -150,7 +150,7 @@ public class LoginController {
                             .maxAge(1800)
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(token).message(userDetails.getUsername()).build();
+                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(null).message(userDetails.getUsername()).build();
                     return new ResponseEntity<>(authResponse,HttpStatus.OK);
                 }
                 else
@@ -188,7 +188,7 @@ public class LoginController {
                             .maxAge(1800)
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(token).message(userDetails.getUsername()).build();
+                    AuthenticationResponse authResponse = AuthenticationResponse.builder().token(null).message(userDetails.getUsername()).build();
                     return new ResponseEntity<>(authResponse,HttpStatus.OK);
                 }
                 else {
