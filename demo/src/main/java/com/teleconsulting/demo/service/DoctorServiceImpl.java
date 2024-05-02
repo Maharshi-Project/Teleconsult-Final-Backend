@@ -12,8 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.print.Doc;
-import javax.print.DocPrintJob;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,9 +44,9 @@ public class DoctorServiceImpl implements DoctorService{
     public Optional<Doctor> getUserByEmail(String email) {
         Optional<Doctor> doctor = doctorRepository.findByEmail(email);
         if(doctor.isEmpty()) {
-            return null;
+            return Optional.empty();
         } else if(doctor.get().isDeleteFlag()) {
-            return null;
+            return Optional.empty();
         }
         return doctorRepository.findByEmail(email);
     }
@@ -85,7 +83,7 @@ public class DoctorServiceImpl implements DoctorService{
                 doctor1.setPhoneNumber(decrypt(regDoc.getPhoneNumber()));
             }catch(Exception e)
             {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
             if(regDoc.getSupervisorDoctor() == null)
             {
@@ -154,12 +152,8 @@ public class DoctorServiceImpl implements DoctorService{
         if(doctor.isDeleteFlag()) {
             return null;
         }
-        if (doctor != null) {
-            doctor.setIncomingCall(patientPhoneNumber);
-            return doctorRepository.save(doctor);
-        } else {
-            return null; // Handle doctor not found scenario
-        }
+        doctor.setIncomingCall(patientPhoneNumber);
+        return doctorRepository.save(doctor);
     }
 
     @Override
@@ -202,20 +196,20 @@ public class DoctorServiceImpl implements DoctorService{
                     doctorDetails.setPhoneNumber(doctor.getPhoneNumber());
                     doctorDetails.setEmail(doctor.getEmail());
                     doctorDetails.setAppointmentCount(doctor.getAppointmentCount());
-                    doctorDetails.setTotalRating((float) doctor.getTotalRating());
+                    doctorDetails.setTotalRating(doctor.getTotalRating());
                     return doctorDetails;
                 })
                 .collect(Collectors.toList());
     }
     @Override
-    public void updateRating(Long id, int rating) {
+    public void updateRating(Long id, float rating) {
         Optional<Doctor> doctor = doctorRepository.findById(id);
         if(doctor.isEmpty()) {
             return;
         } else if(doctor.get().isDeleteFlag()) {
             return;
         }
-        Float tempRating = doctor.get().getTotalRating();
+        float tempRating = doctor.get().getTotalRating();
         tempRating += rating;
         int tempCount = doctor.get().getAppointmentCount();
         tempCount++;
@@ -230,7 +224,7 @@ public class DoctorServiceImpl implements DoctorService{
         List<DoctorRating> doctorRatings = new ArrayList<>();
         for (Object[] ratingObject : ratingObjects) {
             Long id = (Long) ratingObject[0];
-            int rating = (int) ratingObject[1];
+            float rating = (float) ratingObject[1];
             int count = (int) ratingObject[2];
             doctorRatings.add(new DoctorRating(id, rating, count));
         }

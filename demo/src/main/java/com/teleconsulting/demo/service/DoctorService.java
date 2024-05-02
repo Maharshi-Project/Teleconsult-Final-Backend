@@ -5,7 +5,6 @@ import com.teleconsulting.demo.dto.RegDoc;
 import com.teleconsulting.demo.exception.UserNotFoundException;
 import com.teleconsulting.demo.model.AuthenticationResponse;
 import com.teleconsulting.demo.model.Doctor;
-import com.teleconsulting.demo.model.Patient;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +22,7 @@ public interface DoctorService{
     Optional<Doctor> getUserByEmail(String token);
     List<Doctor> findAllAvailableDoctors();
     List<Ddetails> getSnrDoctors();
-    void updateRating(Long id, int rating);
+    void updateRating(Long id, float rating);
     List<DoctorRating> getAllRatings();
     List<Doctor> getOnlineDoctorsforPat();
     List<Doctor> getAllSrDoctors();

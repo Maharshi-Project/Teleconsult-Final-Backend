@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DoctorRating {
     Long id;
-    int totalRating;
-    int appointmentCount;
+    float totalRating;
+    float appointmentCount;
 }
