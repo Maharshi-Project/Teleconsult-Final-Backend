@@ -12,12 +12,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.teleconsulting.demo.controller.CallHistoryController.decrypt;
 
 @Service
 public class DoctorServiceImpl implements DoctorService{
@@ -27,6 +28,23 @@ public class DoctorServiceImpl implements DoctorService{
 
     public DoctorServiceImpl(DoctorRepository doctorRepository) {
         this.doctorRepository = doctorRepository;
+    }
+
+    private static final String key = "AP6bYQSb8OBtd6k9Xp80koDXwOwzo03V";
+    public static String encrypt(String plaintext) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    public static String decrypt(String ciphertext) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
+        return new String(decryptedBytes);
     }
 
     @Override
@@ -80,7 +98,7 @@ public class DoctorServiceImpl implements DoctorService{
             doctor1.setGender(regDoc.getGender());
             doctor1.setPassword(passwordEncoder.encode("password"));
             try{
-                doctor1.setPhoneNumber(decrypt(regDoc.getPhoneNumber()));
+                doctor1.setPhoneNumber(encrypt(regDoc.getPhoneNumber()));
             }catch(Exception e)
             {
                 System.out.println(e.getMessage());
@@ -107,6 +125,7 @@ public class DoctorServiceImpl implements DoctorService{
             doctor1.setIncomingCall(null);
             doctor1.setDeleteFlag(false);
             doctor1.setAvailability(false);
+            doctor1.setValidated(false);
             doctorRepository.save(doctor1);
             return new AuthenticationResponse(null, "Doctor Registration was Successful");
         }
@@ -224,9 +243,10 @@ public class DoctorServiceImpl implements DoctorService{
         List<DoctorRating> doctorRatings = new ArrayList<>();
         for (Object[] ratingObject : ratingObjects) {
             Long id = (Long) ratingObject[0];
-            float rating = (float) ratingObject[1];
-            int count = (int) ratingObject[2];
-            doctorRatings.add(new DoctorRating(id, rating, count));
+            String name = (String) ratingObject[1];
+            float rating = (float) ratingObject[2];
+            int count = (int) ratingObject[3];
+            doctorRatings.add(new DoctorRating(id, name,rating, count));
         }
         return doctorRatings;
     }
@@ -277,7 +297,9 @@ public class DoctorServiceImpl implements DoctorService{
 
     @Override
     public Long countDoctors() {
-        return doctorRepository.count();
+        List<Doctor> doctorList = doctorRepository.findAllDeletedDocs();
+        int delCount = doctorList.size();
+        return doctorRepository.count()-delCount;
     }
 
     @Override
@@ -305,15 +327,20 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
-    public Doctor updateDoctors(Long id, Doctor updatedDoctor) {
+    public Doctor updateDoctors(Long id, RegDoc updatedDoctor) {
         Doctor existingDoctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
-        if(!existingDoctor.isDeleteFlag()) {
+        if(existingDoctor.isDeleteFlag()) {
             return null;
         }
+        System.out.println("\nUpdateDoctors RegDoc\n");
         existingDoctor.setName(updatedDoctor.getName());
         existingDoctor.setGender(updatedDoctor.getGender());
-        existingDoctor.setPhoneNumber(updatedDoctor.getPhoneNumber());
+        try{
+            existingDoctor.setPhoneNumber(encrypt(updatedDoctor.getPhoneNumber()));
+        } catch (Exception e){
+            System.out.println("\nError: "+e.getMessage());
+        }
         existingDoctor.setEmail(updatedDoctor.getEmail());
         return doctorRepository.save(existingDoctor);
     }
@@ -356,5 +383,17 @@ public class DoctorServiceImpl implements DoctorService{
             doctorDetails.setPhoneNumber(doctor.getPhoneNumber());
             return doctorDetails;
         }).orElse(null);
+    }
+
+    @Override
+    public List<Long> findAllSrDocExcept(Long doctorId) {
+        List<Long> finalIds = new ArrayList<>();
+        List<Doctor> doctorList = doctorRepository.findAllSrDocs();
+        for (Doctor doctor : doctorList) {
+            if (!doctor.getId().equals(doctorId)) {
+                finalIds.add(doctor.getId());
+            }
+        }
+        return finalIds;
     }
 }

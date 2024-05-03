@@ -35,7 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     .build();
         }
         Doctor doctor = doctorRepository.findByEmail(username).orElse(null);
-        if(doctor != null && !doctor.isDeleteFlag()){
+        if(doctor != null && !doctor.isDeleteFlag() && doctor.isValidated()){
             System.out.println("\n\n"+doctor);
             return org.springframework.security.core.userdetails.User.withUsername(doctor.getEmail())
                     .password(doctor.getPassword())

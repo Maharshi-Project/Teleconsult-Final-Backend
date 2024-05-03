@@ -15,8 +15,10 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     List<Doctor> findByIncomingCallIsNull();
     List<Doctor> findByAvailability(boolean availabilty);
     List<Doctor>findBySupervisorDoctorIsNull();
-    @Query("SELECT d.id, d.totalRating, d.appointmentCount FROM Doctor d")
+    @Query("SELECT d.id, d.name, d.totalRating, d.appointmentCount FROM Doctor d")
     List<Object []> getRatings();
-    @Query("SELECT d FROM Doctor d WHERE d.supervisorDoctor IS NULL AND d.deleteFlag = FALSE")
+    @Query("SELECT d FROM Doctor d WHERE d.supervisorDoctor IS NULL")
     List<Doctor> findAllSrDocs();
+    @Query("SELECT d FROM Doctor d WHERE d.deleteFlag = TRUE")
+    List<Doctor> findAllDeletedDocs();
 }

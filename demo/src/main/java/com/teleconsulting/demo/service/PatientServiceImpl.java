@@ -10,7 +10,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +25,23 @@ public class PatientServiceImpl implements PatientService{
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     public PatientServiceImpl(PatientRepository patientRepository) {
         this.patientRepository = patientRepository;
+    }
+
+    private static final String key = "AP6bYQSb8OBtd6k9Xp80koDXwOwzo03V";
+    public static String encrypt(String plaintext) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    public static String decrypt(String ciphertext) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
+        return new String(decryptedBytes);
     }
 
     @Override
@@ -77,7 +97,11 @@ public class PatientServiceImpl implements PatientService{
             patient2.setEmail(patient.getEmail());
             patient2.setName(patient.getName());
             patient2.setGender(patient.getGender());
-            patient2.setPhoneNumber(patient.getPhoneNumber());
+            try {
+                patient2.setPhoneNumber(encrypt(patient.getPhoneNumber()));
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+            }
             patient2.setRole(Role.valueOf(Role.USER.toString()));
             patient2.setDeleteFlag(false);
             patientRepository.save(patient2);
@@ -134,18 +158,7 @@ public class PatientServiceImpl implements PatientService{
     @Override
     public List<Patient> findAll() {
         List<Patient> patientList = patientRepository.findAll();
-        List<Patient> finalList = new ArrayList<>();
-        for(Patient patient : patientList) {
-            String temp = patient.getPhoneNumber();
-            try{
-                patient.setPhoneNumber(decrypt(temp));
-                finalList.add(patient);
-            }catch(Exception e)
-            {
-                System.out.println("\nException in PatientServiceImple findById\n"+e);
-            }
-        }
-        return finalList;
+        return patientList;
     }
 
     @Override

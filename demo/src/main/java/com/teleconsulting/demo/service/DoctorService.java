@@ -29,8 +29,10 @@ public interface DoctorService{
     List<Doctor> getAllDoctorsExceptPassword();
     Long countDoctors();
     List<Doctor> getDoctorsUnderSeniorDoctor(Long supervisorId);
-    Doctor updateDoctors(Long id, Doctor updatedDoctor);
+    Doctor updateDoctors(Long id, RegDoc updatedDoctor);
     void updateDoctorSdid(Long doctorId, Long newSdid);
     Doctor findByEmail(String email);
     Doctor getDoctorNameAndPhoneNumber(Long doctorId);
+
+    List<Long> findAllSrDocExcept(Long doctorId);
 }

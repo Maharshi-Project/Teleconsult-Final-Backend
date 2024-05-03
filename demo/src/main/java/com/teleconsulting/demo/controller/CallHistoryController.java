@@ -10,8 +10,6 @@ import com.teleconsulting.demo.repository.DoctorRepository;
 import com.teleconsulting.demo.repository.PatientRepository;
 import com.teleconsulting.demo.service.*;
 import jakarta.mail.MessagingException;
-import org.aspectj.weaver.ast.Call;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.print.Doc;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -857,7 +854,5 @@ public class CallHistoryController {
         Long count = callHistoryService.countPatientsByDoctorId(doctorId);
         return ResponseEntity.ok(count);
     }
-
-
 
 }

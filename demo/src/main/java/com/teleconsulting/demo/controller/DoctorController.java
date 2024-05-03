@@ -1,6 +1,7 @@
 package com.teleconsulting.demo.controller;
 
 import com.teleconsulting.demo.dto.Pdetails;
+import com.teleconsulting.demo.dto.RegDoc;
 import com.teleconsulting.demo.exception.UserNotFoundException;
 import com.teleconsulting.demo.model.AuthenticationResponse;
 import com.teleconsulting.demo.model.Doctor;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.print.Doc;
 import java.util.List;
 import java.util.*;
 
@@ -45,8 +47,14 @@ public class    DoctorController {
     }
     @GetMapping("/doctor/{id}") // Return Doc details from its id
     Doctor getUserById(@PathVariable Long id) {
-        return doctorRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+        Optional<Doctor> doctor = doctorRepository.findById(id);
+        if(doctor.isEmpty()) {
+            return null;
+        } else if(doctor.get().isDeleteFlag()) {
+            return null;
+        }
+        doctor.get().setPassword("");
+        return doctor.get();
     }
     @PostMapping("/join-room") // Update incoming call
     public ResponseEntity<?> joinRoom(@RequestBody RoomJoinRequest request) {
@@ -174,10 +182,10 @@ public class    DoctorController {
         Patient patient = patientService.getPatientByPhoneNumber(phoneNumber);
         return ResponseEntity.ok(patient);
     }
-    @GetMapping("/alldoctors")
-    public List<Doctor> getAllDoctors() {
-        return doctorService.getAllDoctors();
-    }
+//    @GetMapping("/alldoctors")
+//    public List<Doctor> getAllDoctors() {
+//        return doctorService.getAllDoctors();
+//    }
 
     @PostMapping("/addpt")
     public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
@@ -189,6 +197,22 @@ public class    DoctorController {
     public ResponseEntity<List<Doctor>> getAllDoctorsExceptPassword() {
         List<Doctor> doctors = doctorService.getAllDoctorsExceptPassword();
         return new ResponseEntity<>(doctors, HttpStatus.OK);
+    }
+    @GetMapping("/allDoctors")
+    public ResponseEntity<List<Doctor>> getAllDoctor(){
+        List<Doctor> doctorList = doctorService.getAllDoctorsExceptPassword();
+        List<Doctor> finalList = new ArrayList<>();
+        for(Doctor doc : doctorList) {
+            if(doc.getSupervisorDoctor() != null) {
+                finalList.add(doc);
+            }
+        }
+        return new ResponseEntity<>(finalList, HttpStatus.OK);
+    }
+    @GetMapping("/getAllSeniorDoctors")
+    public ResponseEntity<List<Doctor>> getAllSeniorDoctos() {
+        List<Doctor> doctors = doctorService.getAllSrDoctors();
+        return new ResponseEntity<>(doctors,HttpStatus.OK);
     }
     //murli
     @DeleteMapping("/{id}")
@@ -215,7 +239,8 @@ public class    DoctorController {
     }
     //murli
     @PutMapping("/updateDoctor/{id}")
-    public ResponseEntity<Doctor> updateDoctor(@PathVariable Long id, @RequestBody Doctor updatedDoctor) {
+    public ResponseEntity<Doctor> updateDoctor(@PathVariable Long id, @RequestBody RegDoc updatedDoctor) {
+        System.out.println("\nUpdate Doctor \n");
         try {
             Doctor doctor = doctorService.updateDoctors(id, updatedDoctor);
             return ResponseEntity.ok(doctor);
@@ -223,13 +248,12 @@ public class    DoctorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    //murli
     @PutMapping("/{doctorId}/update-sdid/{newSdid}")
     public ResponseEntity<?> updateDoctorSdid(@PathVariable Long doctorId, @PathVariable Long newSdid) {
+        System.out.println("\nPUT MAP from Doctor\n");
         doctorService.updateDoctorSdid(doctorId, newSdid);
         return ResponseEntity.ok("Supervisor Doctor ID updated successfully");
     }
-    //murli
     @GetMapping("/by-email/{email}")
     public ResponseEntity<Long> getDoctorIdByEmail(@PathVariable String email) {
         Doctor doctor = doctorService.findByEmail(email);

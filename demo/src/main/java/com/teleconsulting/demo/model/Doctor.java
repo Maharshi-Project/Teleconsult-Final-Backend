@@ -31,9 +31,10 @@ public class Doctor {
     @JoinColumn(name = "sdid")
     @JsonIgnore
     private Doctor supervisorDoctor;
-    private Float totalRating = 0F;
+    private float totalRating = 0F;
     private boolean availability = false;
     private int appointmentCount;
     private boolean callbackavailabilty = false;
     private boolean deleteFlag;
+    private boolean validated;
 }

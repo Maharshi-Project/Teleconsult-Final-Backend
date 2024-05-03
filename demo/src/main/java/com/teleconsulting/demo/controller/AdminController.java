@@ -61,4 +61,9 @@ public class AdminController {
         patientRepository.deleteById(id);
         return ResponseEntity.ok("Patient with id "+id+" has been deleted success.");
     }
+    @GetMapping("/under-senior/sdid-options/{id}")
+    public List<Long> listOfSrDoc(@PathVariable Long id) {
+        List<Long> srDocNames = doctorService.findAllSrDocExcept(id);
+        return srDocNames;
+    }
 }
