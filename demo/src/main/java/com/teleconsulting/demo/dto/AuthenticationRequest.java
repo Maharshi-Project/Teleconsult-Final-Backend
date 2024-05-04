@@ -1,4 +1,4 @@
-package com.teleconsulting.demo.model;
+package com.teleconsulting.demo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -3,7 +3,6 @@ package com.teleconsulting.demo.controller;
 import com.teleconsulting.demo.dto.Pdetails;
 import com.teleconsulting.demo.dto.RegDoc;
 import com.teleconsulting.demo.exception.UserNotFoundException;
-import com.teleconsulting.demo.model.AuthenticationResponse;
 import com.teleconsulting.demo.model.Doctor;
 import com.teleconsulting.demo.model.Patient;
 import com.teleconsulting.demo.repository.DoctorRepository;
@@ -12,12 +11,10 @@ import com.teleconsulting.demo.service.CallHandlingService;
 import com.teleconsulting.demo.service.DoctorService;
 import com.teleconsulting.demo.service.PatientService;
 import com.teleconsulting.demo.service.RoomJoinRequest;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.Doc;
 import java.util.List;
 import java.util.*;
 

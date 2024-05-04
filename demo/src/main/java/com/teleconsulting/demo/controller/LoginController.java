@@ -1,11 +1,15 @@
 package com.teleconsulting.demo.controller;
 
-import com.teleconsulting.demo.model.AuthenticationRequest;
-import com.teleconsulting.demo.model.AuthenticationResponse;
+import com.teleconsulting.demo.dto.AuthenticationRequest;
+import com.teleconsulting.demo.dto.AuthenticationResponse;
 import com.teleconsulting.demo.model.Patient;
+import com.teleconsulting.demo.redis.UserSession;
 import com.teleconsulting.demo.security.JwtService;
 import com.teleconsulting.demo.service.PatientService;
+import com.teleconsulting.demo.service.RedisService;
 import com.teleconsulting.demo.service.UserDetailsServiceImpl;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,12 +30,14 @@ public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
+    private final RedisService redisService;
 
-    public LoginController(PatientService patientService, AuthenticationManager authenticationManager, JwtService jwtService, UserDetailsServiceImpl userDetailsService) {
+    public LoginController(PatientService patientService, AuthenticationManager authenticationManager, JwtService jwtService, UserDetailsServiceImpl userDetailsService, RedisService redisService) {
         this.patientService = patientService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.redisService = redisService;
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
@@ -134,7 +140,7 @@ public class LoginController {
     }
 
     @PostMapping("/admin/login")
-    public ResponseEntity<?> adminLogin(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> adminLogin(@RequestBody AuthenticationRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword());
         try{
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
@@ -150,6 +156,10 @@ public class LoginController {
                             .maxAge(1800)
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                    String ipAddress = httpRequest.getRemoteUser();
+                    Long expirationTimeMillis = System.currentTimeMillis() + (60*60*1000*24); // 24 Hr
+                    UserSession userSession = new UserSession(userDetails.getUsername(),ipAddress,token,expirationTimeMillis);
+                    redisService.saveSession(userDetails.getUsername(),userSession);
                     AuthenticationResponse authResponse = AuthenticationResponse.builder().token(null).message(userDetails.getUsername()).build();
                     return new ResponseEntity<>(authResponse,HttpStatus.OK);
                 }
@@ -210,8 +220,18 @@ public class LoginController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        // Clear the HttpOnly cookie
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        String token = null;
+        if(request.getCookies() != null){
+            for(Cookie cookie: request.getCookies()){
+                if(cookie.getName().equals("accessToken")){
+                    token = cookie.getValue();
+                    System.out.println("\nLogout token\n");
+                }
+            }
+        }
+        String username = jwtService.extractUsername(token);
+        redisService.deleteSession(username);
         ResponseCookie cookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
                 .secure(false)

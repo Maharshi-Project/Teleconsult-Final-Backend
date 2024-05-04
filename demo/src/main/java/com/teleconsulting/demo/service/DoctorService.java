@@ -3,7 +3,7 @@ import com.teleconsulting.demo.dto.Ddetails;
 import com.teleconsulting.demo.dto.DoctorRating;
 import com.teleconsulting.demo.dto.RegDoc;
 import com.teleconsulting.demo.exception.UserNotFoundException;
-import com.teleconsulting.demo.model.AuthenticationResponse;
+import com.teleconsulting.demo.dto.AuthenticationResponse;
 import com.teleconsulting.demo.model.Doctor;
 
 import java.util.List;
